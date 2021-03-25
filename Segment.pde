@@ -12,6 +12,22 @@ public class Segment{
   public float longueur(){
     return sqrt( pow(p1.x-p2.x,2) + pow(p1.y-p2.y,2)  );
   }
+  
+  public PVector pointPlusBas(){
+    if(p1.y<p2.y){
+      return p2;
+    }else{
+      return p1;
+    }
+  }
+  
+  public PVector pointPlusHaut(){
+    if(p1.y<p2.y){
+      return p1;
+    }else{
+      return p2;
+    }
+  }
 
   
   
