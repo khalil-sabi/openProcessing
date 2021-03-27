@@ -13,9 +13,9 @@ public class Comparaison implements Comparator<Segment>{
 public class ComparaisonLongueur implements Comparator<Segment>{
   public int compare(Segment s1,Segment s2){
     if( s1.longueur()<s2.longueur() ){
-      return 1;
-    }else if( s1.longueur()>s2.longueur() ){
       return -1;
+    }else if( s1.longueur()>s2.longueur() ){
+      return 1;
     }else{
       return 0;
     }

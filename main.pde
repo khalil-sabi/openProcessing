@@ -2,13 +2,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.lang.Math;
 
-int N = 3000;
+int N = 200;
 ArrayList<Segment> segments = new ArrayList<Segment>();
 ArrayList<Point> points = new ArrayList<Point>();
 Segment chosen_one = null;
 
 void setup() {
-  size(1000, 1000);
+  size(750, 750);
   for (int i = 0; i < N; i++) {
     Point p1 = new Point(random(width), random(height));
     Point p2 = new Point(random(width), random(height));
@@ -21,12 +21,15 @@ void setup() {
   }
   
   //chosen_one = forceBrute(0,segments.size());
-  chosen_one = sweepline();
+  //chosen_one = sweepline();
+  long startTime = System.nanoTime();
+  Collections.sort(segments,new Comparaison());
   
+  chosen_one = divideAndConquer(0,segments.size(),null);
   
+  long endTime = System.nanoTime();
+  println((endTime - startTime)/1000.0);
   
-  strokeWeight(2);
-  stroke(0);
 
   noLoop();
 }
@@ -53,7 +56,7 @@ Segment forceBrute(int debut, int fin){
   for (int i = debut;i < fin;i++) {
     Segment s = segments.get(i);
     Segment temp = s;
-    for(int j = debut;j < fin;j++){
+    for(int j = 0;j < segments.size();j++){
       if(j == i){continue;}
       Segment sj = segments.get(j);
       if( s.intersection(sj) ){
@@ -123,5 +126,37 @@ Segment sweepline(){
     println((endTime - startTime)/1000.0);
     return chosen;
   }
+}
+
+
+Segment divideAndConquer(int start,int end, Segment candidat){
   
+  if(end-start < 3){
+    for(int i = start;i<end;i++){
+      if(candidat == null || segments.get(i).longueur()>candidat.longueur()){
+        Segment temp = segments.get(i);
+        for(int j = 0;j < segments.size();j++){
+          if(j == i){continue;}
+            Segment sj = segments.get(j);
+              if(temp.intersection(sj) ){
+                temp = null;
+                break;
+              }
+          }
+        if(temp != null){
+          return temp;
+        }
+      }
+    }
+    return candidat;
+  }
+  
+  
+  Segment C1 = divideAndConquer(start, (start+end)/2, candidat);
+  Segment C2 = divideAndConquer((start+end)/2, end, candidat);
+  if(C1 == null && C2 == null){
+    return null;
+  }else if(C1 == null){return C2;}else if(C2 == null){return C1;}
+  candidat = (C1.longueur() < C2.longueur()) ? C2 : C1;
+  return candidat;
 }
