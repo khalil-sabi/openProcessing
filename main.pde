@@ -1,8 +1,7 @@
 import java.util.Collections;
 import java.util.Comparator;
 import java.lang.Math;
-
-int N = 200;
+int N = 500;
 ArrayList<Segment> segments = new ArrayList<Segment>();
 ArrayList<Point> points = new ArrayList<Point>();
 Segment chosen_one = null;
@@ -22,15 +21,21 @@ void setup() {
   
   //chosen_one = forceBrute(0,segments.size());
   //chosen_one = sweepline();
-  long startTime = System.nanoTime();
-  Collections.sort(segments,new Comparaison());
   
-  chosen_one = divideAndConquer(0,segments.size(),null);
+ long startTime = System.nanoTime();
+  Collections.sort(segments,new Comparaison());
+  ArrayList<Segment> result = divideAndConquer(0,segments.size(),true);
+  
+  Collections.sort(result, new ComparaisonLongueur());
+ 
+  if(result.size() != 0){
+    chosen_one = result.get(result.size() - 1);
+  }
+  
   
   long endTime = System.nanoTime();
   println((endTime - startTime)/1000.0);
   
-
   noLoop();
 }
 
@@ -53,27 +58,26 @@ void draw() {
 Segment forceBrute(int debut, int fin){
   long startTime = System.nanoTime();
   Segment choisi = null;
+  Boolean intersection = false;
   for (int i = debut;i < fin;i++) {
+    intersection = false;
     Segment s = segments.get(i);
-    Segment temp = s;
     for(int j = 0;j < segments.size();j++){
       if(j == i){continue;}
       Segment sj = segments.get(j);
       if( s.intersection(sj) ){
-        temp = null;
+        intersection = true;
       }
     }
-    if(temp != null){
-      if(choisi != null){
-        if(temp.longueur() > choisi.longueur() ){
-          choisi=temp;
-        }
-      }else{
-        choisi = temp;
+    if(!intersection){
+      if(choisi == null){
+        choisi = s;
+      }else if(s.longueur() > choisi.longueur()){
+        choisi = s;
       }
     }
   }
-    long endTime = System.nanoTime();
+  long endTime = System.nanoTime();
   println((endTime - startTime)/1000.0);
   
   return choisi;
@@ -81,7 +85,7 @@ Segment forceBrute(int debut, int fin){
 
 Segment sweepline(){
   long startTime = System.nanoTime();
-  Segment temp = null;
+  Boolean intersection;
   Collections.sort(points,new ComparaisonPoints());
   
   ArrayList<Segment> active = new ArrayList();
@@ -90,8 +94,9 @@ Segment sweepline(){
   for (int i = 0;i < points.size();i++){
     Point pi = points.get(i);
     Segment si = pi.getSegment();
+    intersection = false;
     if(pi == si.pointPlusHaut()){
-      temp = si;
+      
       for(int j = 0;j< active.size();j++){
         Segment sj = active.get(j);
         if(si.intersection(sj)){
@@ -102,12 +107,12 @@ Segment sweepline(){
               candidats.remove(sk);
             }
           }
-          temp = null;
+          intersection= true;
           break;
         }
       }
-      if(temp != null){
-        candidats.add(temp);
+      if(!intersection){
+        candidats.add(si);
       }
       active.add(si);
     }else{
@@ -129,34 +134,73 @@ Segment sweepline(){
 }
 
 
-Segment divideAndConquer(int start,int end, Segment candidat){
+
+ArrayList<Segment> divideAndConquer(int start,int end,Boolean first){
+  ArrayList<Segment> resultd,resultg, temp;
   
   if(end-start < 3){
-    for(int i = start;i<end;i++){
-      if(candidat == null || segments.get(i).longueur()>candidat.longueur()){
-        Segment temp = segments.get(i);
-        for(int j = 0;j < segments.size();j++){
-          if(j == i){continue;}
-            Segment sj = segments.get(j);
-              if(temp.intersection(sj) ){
-                temp = null;
-                break;
-              }
-          }
-        if(temp != null){
-          return temp;
-        }
-      }
-    }
-    return candidat;
+    return bruteForceDivConq(start,end);
   }
   
   
-  Segment C1 = divideAndConquer(start, (start+end)/2, candidat);
-  Segment C2 = divideAndConquer((start+end)/2, end, candidat);
-  if(C1 == null && C2 == null){
-    return null;
-  }else if(C1 == null){return C2;}else if(C2 == null){return C1;}
-  candidat = (C1.longueur() < C2.longueur()) ? C2 : C1;
-  return candidat;
+  resultd = divideAndConquer(start, (start+end)/2,false);
+  resultg = divideAndConquer((start+end)/2,end,false);
+  
+  if(first){
+    temp = bruteForceDivConqTab(resultg,resultd);
+    resultd = bruteForceDivConqTab(resultd,resultg);
+    resultd.addAll(temp);
+    return bruteForceDivConqTab(resultd,segments);
+  }
+  
+  temp = bruteForceDivConqTab(resultg,resultd);
+  resultd = bruteForceDivConqTab(resultd,resultg);
+  resultd.addAll(temp);
+  return resultd;
+ 
+  
+}
+
+ArrayList<Segment> bruteForceDivConq(int start,int end){
+  Boolean intersection = false;
+  ArrayList<Segment> result = new ArrayList<Segment>();
+  for(int i = start;i<end;i++){
+      intersection = false;
+      Segment si = segments.get(i);
+      for(int j = 0;j < end;j++){
+          Segment sj = segments.get(j);
+          if(si == sj){continue;}
+            if(si.intersection(sj) ){
+              intersection = true;
+              break;
+            }
+      }
+      if(!intersection){
+        result.add(si);
+      }
+    }
+  
+  return result;
+}
+
+ArrayList<Segment> bruteForceDivConqTab(ArrayList<Segment> a1, ArrayList<Segment> a2){
+  Boolean intersection = false;
+  ArrayList<Segment> result = new ArrayList<Segment>();
+  for(int i = 0;i<a1.size();i++){
+      intersection = false;
+      Segment si = a1.get(i);
+      for(int j = 0;j < a2.size();j++){
+          Segment sj = a2.get(j);
+          if(si == sj){continue;}
+          
+            if(si.intersection(sj) ){
+              intersection = true;
+              
+            }
+      }
+      if(!intersection){
+        result.add(si);
+      }
+    }
+  return result;
 }
