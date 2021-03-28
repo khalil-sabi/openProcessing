@@ -7,7 +7,7 @@ ArrayList<Point> points = new ArrayList<Point>();
 Segment chosen_one = null;
 
 void setup() {
-  size(750, 750);
+  size(500, 500);
   for (int i = 0; i < N; i++) {
     Point p1 = new Point(random(width), random(height));
     Point p2 = new Point(random(width), random(height));
@@ -22,7 +22,9 @@ void setup() {
   //chosen_one = forceBrute(0,segments.size());
   //chosen_one = sweepline();
   
- long startTime = System.nanoTime();
+  
+  //diviser pour regner
+ /*long startTime = System.nanoTime();
   Collections.sort(segments,new Comparaison());
   ArrayList<Segment> result = divideAndConquer(0,segments.size(),true);
   
@@ -34,8 +36,8 @@ void setup() {
   
   
   long endTime = System.nanoTime();
-  println((endTime - startTime)/1000.0);
-  
+  println("temps d execution "+(endTime - startTime)/1000.0);
+  */
   noLoop();
 }
 
@@ -78,7 +80,7 @@ Segment forceBrute(int debut, int fin){
     }
   }
   long endTime = System.nanoTime();
-  println((endTime - startTime)/1000.0);
+  println("temps d execution "+(endTime - startTime)/1000.0);
   
   return choisi;
 }
@@ -123,12 +125,12 @@ Segment sweepline(){
   
   if(candidats.size() == 0){
     long endTime = System.nanoTime();
-    println((endTime - startTime)/1000.0);
+    println("temps d execution "+(endTime - startTime)/1000.0);
     return null;
   }else{
     Segment chosen = Collections.max(candidats,new ComparaisonLongueur());
     long endTime = System.nanoTime();
-    println((endTime - startTime)/1000.0);
+    println("temps d execution "+(endTime - startTime)/1000.0);
     return chosen;
   }
 }
